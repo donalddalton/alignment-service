@@ -1,0 +1,28 @@
+plugins {
+  id "com.diffplug.gradle.spotless" version "3.28.0"
+  id "scala"
+}
+
+repositories {
+  jcenter()
+}
+
+test {
+  useJUnitPlatform()
+}
+
+spotless {
+  scala {
+    target fileTree(rootDir) {
+      include '**/*.scala'
+      exclude '**/build'
+    }
+    scalafmt("2.5.2").configFile("$rootDir/.scalafmt.conf")
+  }
+}
+
+dependencies {
+  testImplementation "org.junit.platform:junit-platform-engine:1.6.2"
+  testImplementation "org.junit.platform:junit-platform-launcher:1.6.2"
+  testImplementation "co.helmethair:scalatest-junit-runner:0.1.6:1.6.2"
+}
