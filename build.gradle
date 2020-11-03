@@ -1,10 +1,21 @@
 plugins {
   id "com.diffplug.gradle.spotless" version "3.28.0"
+  id "org.gradle.playframework" version "0.10"
   id "scala"
 }
 
 repositories {
+  mavenCentral()
   jcenter()
+  maven {
+    name "lightbend-maven-release"
+    url "https://repo.lightbend.com/lightbend/maven-releases"
+  }
+  ivy {
+    name "lightbend-ivy-release"
+    url "https://repo.lightbend.com/lightbend/ivy-releases"
+    layout "ivy"
+  }
 }
 
 test {
@@ -21,8 +32,20 @@ spotless {
   }
 }
 
+play {
+  platform {
+    playVersion = "2.7.3"
+    scalaVersion = "2.13"
+    javaVersion = JavaVersion.VERSION_1_8
+  }
+  injectedRoutesGenerator = true
+  jar {
+    enabled = true
+  }
+}
+
 dependencies {
   testImplementation "org.junit.platform:junit-platform-engine:1.6.2"
   testImplementation "org.junit.platform:junit-platform-launcher:1.6.2"
-  testImplementation "co.helmethair:scalatest-junit-runner:0.1.6:1.6.2"
+  testImplementation "co.helmethair:scalatest-junit-runner:0.1.6"
 }
