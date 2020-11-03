@@ -45,6 +45,11 @@ play {
 }
 
 dependencies {
+  // play
+  implementation "com.typesafe.play:play-guice_2.13:2.7.3"
+  implementation "ch.qos.logback:logback-classic:1.2.3"
+  testImplementation "org.scalatestplus.play:scalatestplus-play_2.13:4.0.3"
+  // test deps
   testImplementation "org.junit.platform:junit-platform-engine:1.6.2"
   testImplementation "org.junit.platform:junit-platform-launcher:1.6.2"
   testImplementation "co.helmethair:scalatest-junit-runner:0.1.6"
