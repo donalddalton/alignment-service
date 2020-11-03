@@ -1,6 +1,7 @@
 plugins {
   id "com.diffplug.gradle.spotless" version "3.28.0"
   id "org.gradle.playframework" version "0.10"
+  id "org.flywaydb.flyway" version "6.5.6"
   id "scala"
 }
 
@@ -22,6 +23,15 @@ test {
   useJUnitPlatform()
 }
 
+ext {
+  SCALA_VERSION = "2.13"
+  PLAY_VERSION = "2.7.3"
+  JUNIT_VERSION = "1.6.2"
+  POSTGRES_URL = System.getenv("POSTGRES_URL") ?: "jdbc:postgresql://localhost:5432/alignment"
+  POSTGRES_USER = System.getenv("POSTGRES_USER") ?: "postgres"
+  POSTGRES_PASSWORD = System.getenv("POSTGRES_PASSWORD") ?: "postgres"
+}
+
 spotless {
   scala {
     target fileTree(rootDir) {
@@ -34,8 +44,8 @@ spotless {
 
 play {
   platform {
-    playVersion = "2.7.3"
-    scalaVersion = "2.13"
+    playVersion = PLAY_VERSION
+    scalaVersion = SCALA_VERSION
     javaVersion = JavaVersion.VERSION_1_8
   }
   injectedRoutesGenerator = true
@@ -44,13 +54,23 @@ play {
   }
 }
 
+flyway {
+  url = POSTGRES_URL
+  user = POSTGRES_USER
+  password = POSTGRES_PASSWORD
+  connectRetries = 10
+  locations =  ['filesystem:app/flyway/src/main/resources/db/migration']
+}
+
 dependencies {
   // play
-  implementation "com.typesafe.play:play-guice_2.13:2.7.3"
+  implementation "com.typesafe.play:play-guice_${SCALA_VERSION}:${PLAY_VERSION}"
   implementation "ch.qos.logback:logback-classic:1.2.3"
-  testImplementation "org.scalatestplus.play:scalatestplus-play_2.13:4.0.3"
+  testImplementation "org.scalatestplus.play:scalatestplus-play_${SCALA_VERSION}:4.0.3"
   // test deps
-  testImplementation "org.junit.platform:junit-platform-engine:1.6.2"
-  testImplementation "org.junit.platform:junit-platform-launcher:1.6.2"
+  testImplementation "org.junit.platform:junit-platform-engine:${JUNIT_VERSION}"
+  testImplementation "org.junit.platform:junit-platform-launcher:${JUNIT_VERSION}"
   testImplementation "co.helmethair:scalatest-junit-runner:0.1.6"
+  // postgres
+  implementation "org.postgresql:postgresql:42.2.12"
 }
