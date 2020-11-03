@@ -27,7 +27,8 @@ ext {
   SCALA_VERSION = "2.13"
   PLAY_VERSION = "2.7.3"
   JUNIT_VERSION = "1.6.2"
-  POSTGRES_URL = System.getenv("POSTGRES_URL") ?: "jdbc:postgresql://localhost:5432/alignment"
+  SLICK_VERSION = "3.3.2"
+  POSTGRES_URL = System.getenv("POSTGRES_URL") ?: "jdbc:postgresql://localhost:5432/play"
   POSTGRES_USER = System.getenv("POSTGRES_USER") ?: "postgres"
   POSTGRES_PASSWORD = System.getenv("POSTGRES_PASSWORD") ?: "postgres"
 }
@@ -67,10 +68,13 @@ dependencies {
   implementation "com.typesafe.play:play-guice_${SCALA_VERSION}:${PLAY_VERSION}"
   implementation "ch.qos.logback:logback-classic:1.2.3"
   testImplementation "org.scalatestplus.play:scalatestplus-play_${SCALA_VERSION}:4.0.3"
+  // postgres/slick
+  implementation "org.postgresql:postgresql:42.2.12"
+  implementation "com.typesafe.slick:slick_${SCALA_VERSION}:${SLICK_VERSION}"
+  implementation "com.typesafe.slick:slick-hikaricp_${SCALA_VERSION}:${SLICK_VERSION}"
+  implementation "com.zaxxer:HikariCP:3.2.0"
   // test deps
   testImplementation "org.junit.platform:junit-platform-engine:${JUNIT_VERSION}"
   testImplementation "org.junit.platform:junit-platform-launcher:${JUNIT_VERSION}"
   testImplementation "co.helmethair:scalatest-junit-runner:0.1.6"
-  // postgres
-  implementation "org.postgresql:postgresql:42.2.12"
 }

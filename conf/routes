@@ -1,4 +1,11 @@
 # Home page
 GET /                                 controllers.HomeController.index
 
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+# Return all Users
+GET /users                            controllers.UserController.getUsers
+
+# Create a User
+POST /createUser                      controllers.UserController.createUser
+
+# Delete a User
+DELETE /deleteUser/:id                controllers.UserController.deleteUser(id: Int)
