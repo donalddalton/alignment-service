@@ -8,6 +8,6 @@ class HomeController @Inject() (cc: ControllerComponents)(implicit ec: Execution
   extends AbstractController(cc) {
 
   def index = Action { implicit request =>
-    Ok("Hello, GBW")
+    Ok(views.html.index())
   }
 }
