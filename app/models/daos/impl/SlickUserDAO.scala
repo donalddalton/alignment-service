@@ -13,10 +13,10 @@ class SlickUserDAO @Inject() (db: Database)(implicit ec: ExecutionContext) exten
 
   import profile.api._
 
-  private val queryById = Compiled((id: Rep[Int]) => Users.filter(_.id === id))
+  private val queryByUsername = Compiled((username: Rep[String]) => Users.filter(_.username === username))
 
-  def lookup(id: Int): Future[Option[User]] = {
-    val f: Future[Option[UsersRow]] = db.run(queryById(id).result.headOption)
+  def lookup(username: String): Future[Option[User]] = {
+    val f: Future[Option[UsersRow]] = db.run(queryByUsername(username).result.headOption)
     f.map(maybeRow => maybeRow.map(usersRowToUser))
   }
 
@@ -25,18 +25,16 @@ class SlickUserDAO @Inject() (db: Database)(implicit ec: ExecutionContext) exten
     f.map(seq => seq.map(usersRowToUser))
   }
 
-  def update(user: User): Future[Int] = {
-    db.run(queryById(user.id).update(userToUsersRow(user)))
+  def update(user: User): Future[String] = {
+    db.run(queryByUsername(user.username).update(userToUsersRow(user))).map(_ => user.username)
   }
 
-  def delete(id: Int): Future[Int] = {
-    db.run(queryById(id).delete)
+  def delete(username: String): Future[String] = {
+    db.run(queryByUsername(username).delete).map(_ => username)
   }
 
-  def create(user: User): Future[Int] = {
-    db.run(
-      Users += userToUsersRow(user)
-    )
+  def create(user: User): Future[String] = {
+    db.run(Users += userToUsersRow(user)).map(_ => user.username)
   }
 
   def close(): Future[Unit] = {
@@ -44,10 +42,10 @@ class SlickUserDAO @Inject() (db: Database)(implicit ec: ExecutionContext) exten
   }
 
   private def userToUsersRow(user: User): UsersRow = {
-    UsersRow(user.id, user.username, user.password)
+    UsersRow(user.username, user.password)
   }
 
   private def usersRowToUser(usersRow: UsersRow): User = {
-    User(usersRow.id, usersRow.username, usersRow.password)
+    User(usersRow.username, usersRow.password)
   }
 }

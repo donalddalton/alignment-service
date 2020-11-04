@@ -8,15 +8,15 @@ import scala.concurrent.Future
   */
 trait UserDAO {
 
-  def lookup(id: Int): Future[Option[User]]
+  def lookup(username: String): Future[Option[User]]
 
   def all: Future[Seq[User]]
 
-  def update(user: User): Future[Int]
+  def update(user: User): Future[String]
 
-  def delete(id: Int): Future[Int]
+  def delete(id: String): Future[String]
 
-  def create(user: User): Future[Int]
+  def create(user: User): Future[String]
 
   def close(): Future[Unit]
 }

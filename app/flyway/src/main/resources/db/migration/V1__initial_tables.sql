@@ -1,7 +1,6 @@
 drop table if exists users;
 
 create table users (
-    id       integer primary key generated always as identity,
-    username varchar(255) not null unique,
+    username varchar(255) primary key,
     password varchar(255) not null
 );
