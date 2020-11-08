@@ -1,0 +1,65 @@
+
+@(
+    form: Form[controllers.AlignmentsController.JobForm],
+    jobs: Seq[entities.AlignmentJob],
+    postUrl: Call
+)(implicit request: MessagesRequestHeader)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+    </head>
+
+    <body id="user-jobs">
+        <div id="content">
+
+            <div id="user-jobs-form">
+
+                <h1>Alignment Jobs</h1>
+
+                @request.flash.data.map{ case (name, value) =>
+                <div>@name: @value</div>
+                }
+
+                @* Global errors are not tied to any particular form field *@
+                @if(form.hasGlobalErrors) {
+                    @form.globalErrors.map { error: FormError =>
+                        <div>
+                            Error: @error.key: @error.message
+                        </div>
+                    }
+                }
+
+                @helper.form(postUrl, 'id -> "user-jobs-form") {
+                    @helper.inputText(
+                        form("query"),
+                        '_label -> "Query",
+                        'placeholder -> "ATGC",
+                        'id -> "query"
+                    )
+
+                    <button>Submit</button>
+
+                }
+            </div>
+
+            <table>
+                <tr>
+                    <th>Job Id</th>
+                    <th>Creation Time</th>
+                    <th>Start Time</th>
+                    <th>Completion Time</th>
+                </tr>
+                @for(job <- jobs) {
+                    <tr>
+                        <td>@job.id</td>
+                        <td>@job.createdAt</td>
+                        <td>@job.startedAt</td>
+                        <td>@job.completedAt</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </body>
+</html>

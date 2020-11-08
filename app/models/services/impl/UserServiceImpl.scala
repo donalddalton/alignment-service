@@ -1,11 +1,12 @@
 package models.services.impl
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import models.daos.UserDAO
 import models.entities.User
 import models.services.UserService
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class UserServiceImpl @Inject() (userDAO: UserDAO)(implicit ec: ExecutionContext) extends UserService {
 
   override def createUser(user: User): Future[String] = userDAO.create(user)

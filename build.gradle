@@ -73,8 +73,14 @@ dependencies {
   implementation "com.typesafe.slick:slick_${SCALA_VERSION}:${SLICK_VERSION}"
   implementation "com.typesafe.slick:slick-hikaricp_${SCALA_VERSION}:${SLICK_VERSION}"
   implementation "com.zaxxer:HikariCP:3.2.0"
+  implementation "com.github.tototoshi:slick-joda-mapper_${SCALA_VERSION}:2.4.2"
   // test deps
   testImplementation "org.junit.platform:junit-platform-engine:${JUNIT_VERSION}"
   testImplementation "org.junit.platform:junit-platform-launcher:${JUNIT_VERSION}"
   testImplementation "co.helmethair:scalatest-junit-runner:0.1.6"
+  // biojava
+  implementation "org.biojava:biojava-alignment:5.4.0"
+  implementation "org.biojava:biojava-core:5.4.0"
+  implementation "org.biojava:biojava-phylo:4.2.12"
+  implementation "org.biojava.thirdparty:forester:1.038"
 }

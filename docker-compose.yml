@@ -1,12 +1,36 @@
 version: '3.5'
 
+x-common-variables: &common-variables
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+  POSTGRES_DB: "play"
+  POSTGRES_URL: "jdbc:postgresql://postgres:5432/play"
+
 services:
   postgres:
     image: "postgres:alpine"
     container_name: "postgres"
     ports:
       - "5432:5432"
+    environment: *common-variables
+    restart: always
+#  alignment-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    depends_on:
+#      - postgres
+#    ports:
+#      - "8080:9000"
+#    environment: *common-variables
+#    restart: always
+  pgadmin:
+    image: "dpage/pgadmin4"
+    container_name: "pgadmin"
+    depends_on:
+      - postgres
+    ports:
+      - "9001:80"
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: "play"
+      PGADMIN_DEFAULT_EMAIL: "user@domain.com"
+      PGADMIN_DEFAULT_PASSWORD: "postgres"

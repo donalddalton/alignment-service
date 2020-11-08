@@ -10,4 +10,8 @@ GET /login                            controllers.UserController.loginPage
 
 POST /doLogin                         controllers.UserController.processLoginAttempt
 
+GET /jobs                             controllers.AlignmentsController.jobsPage
+
+POST /align                            controllers.AlignmentsController.align
+
 GET     /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
