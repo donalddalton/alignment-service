@@ -1,6 +1,6 @@
 
 @(
-    form: Form[controllers.AlignmentsController.JobForm],
+    form: Form[controllers.JobsController.JobForm],
     jobs: Seq[entities.AlignmentJob],
     postUrl: Call
 )(implicit request: MessagesRequestHeader)
@@ -8,58 +8,73 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     </head>
 
     <body id="user-jobs">
         <div id="content">
 
-            <div id="user-jobs-form">
+            <div class="container">
+                <div id="user-jobs-form">
+                    <h1>Alignment Jobs</h1>
 
-                <h1>Alignment Jobs</h1>
-
-                @request.flash.data.map{ case (name, value) =>
-                <div>@name: @value</div>
-                }
-
-                @* Global errors are not tied to any particular form field *@
-                @if(form.hasGlobalErrors) {
-                    @form.globalErrors.map { error: FormError =>
-                        <div>
-                            Error: @error.key: @error.message
-                        </div>
+                    @request.flash.data.map{ case (name, value) =>
+                    <div>@name: @value</div>
                     }
-                }
 
-                @helper.form(postUrl, 'id -> "user-jobs-form") {
-                    @helper.inputText(
-                        form("query"),
-                        '_label -> "Query",
-                        'placeholder -> "ATGC",
-                        'id -> "query"
-                    )
+                    @* Global errors are not tied to any particular form field *@
+                    @if(form.hasGlobalErrors) {
+                        @form.globalErrors.map { error: FormError =>
+                            <div>
+                                Error: @error.key: @error.message
+                            </div>
+                        }
+                    }
 
-                    <button>Submit</button>
+                    @helper.form(postUrl, 'id -> "user-jobs-form") {
+                        @helper.inputText(
+                            form("query"),
+                            '_label -> "Query",
+                            'placeholder -> "ATGC",
+                            'id -> "query"
+                        )
+                        <button>Submit</button>
 
-                }
-            </div>
+                    }
+                    <br>
+                    <a href='@routes.UserController.logout'>Logout</a>
+                </div>
+            @if(jobs.nonEmpty) {
+                    <h2>Job History</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Created</th>
+                                <th>Started</th>
+                                <th>Completed</th>
+                                <th>Match</th>
+                            </tr>
+                        </thead>
 
-            <table>
-                <tr>
-                    <th>Job Id</th>
-                    <th>Creation Time</th>
-                    <th>Start Time</th>
-                    <th>Completion Time</th>
-                </tr>
                 @for(job <- jobs) {
-                    <tr>
-                        <td>@job.id</td>
-                        <td>@job.createdAt</td>
-                        <td>@job.startedAt</td>
-                        <td>@job.completedAt</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td><a href='@routes.JobsController.jobResultPage(job.id)'>@job.id</a></td>
+                            <td>@job.createdAt</td>
+                            <td>@job.startedAt</td>
+                            <td>@job.completedAt</td>
+                            <td>@job.targetMatch</td>
+                        </tr>
+                    </tbody>
                 }
-            </table>
+                </table>
+                </div>
+            }
         </div>
     </body>
 </html>

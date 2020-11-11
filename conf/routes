@@ -1,17 +1,33 @@
 # Home page
 GET /                                 controllers.HomeController.index
 
-# Register a new user
+GET /ping                             controllers.HomeController.ping
+
+# User registration page
 GET /registerUser                     controllers.UserController.registerPage
 
+# Process register user request
 POST /doRegisterUser                  controllers.UserController.processCreateUser
 
+# Login page
 GET /login                            controllers.UserController.loginPage
 
+# Logout
+GET /doLogout                         controllers.UserController.logout
+
+# Process login request
 POST /doLogin                         controllers.UserController.processLoginAttempt
 
-GET /jobs                             controllers.AlignmentsController.jobsPage
+# Alignment jobs for user page
+GET /:username/jobs                   controllers.JobsController.jobsPage(username: String)
 
-POST /align                            controllers.AlignmentsController.align
+# Process create alignment job request
+POST /:username/createJob             controllers.JobsController.processCreateJob(username: String)
 
-GET     /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
+# Job result
+GET /jobs/:id                         controllers.JobsController.jobResultPage(id: java.util.UUID)
+
+# Profiling route
+GET /jobs/profile/:n                  controllers.JobsController.profile(n: Int)
+
+GET /assets/*file                     controllers.Assets.versioned(path="/public", file: Asset)

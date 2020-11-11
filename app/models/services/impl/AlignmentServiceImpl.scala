@@ -3,8 +3,8 @@ package models.services.impl
 import java.util.UUID
 import java.util.concurrent.{Executors, LinkedBlockingQueue}
 import javax.inject.{Inject, Singleton}
-import lib.src.main.scala.BioJava
-import lib.src.main.scala.BioJava.AlignmentResult
+import lib.biojava.BioJava
+import lib.biojava.BioJava.AlignmentResult
 import models.daos.{JobDAO, TargetDAO}
 import models.entities.AlignmentJob
 import models.services.AlignmentService
@@ -22,33 +22,38 @@ class AlignmentServiceImpl @Inject() (
 
   private val log = play.api.Logger(this.getClass).logger
 
+  /** Job unique id generator. */
   private def uuid: UUID = java.util.UUID.randomUUID
 
   /**
-    * Buffer alignment jobs in a [[LinkedBlockingQueue]]. TODO
+    * Buffer alignment jobs in a [[LinkedBlockingQueue]]. In practice this would be better done with a message broker
+    * backed by a pool of consumers. For now just buffer incoming requests in a queue of bounded size.
     */
-  private val queue = new LinkedBlockingQueue[AlignmentJob]()
+  private val jobQueue = new LinkedBlockingQueue[AlignmentJob](10000)
 
   // Create ((# CPU cores) / 2) alignment workers for blocking computations
   private val cores = Runtime.getRuntime.availableProcessors() / 2
   private val pool = Executors.newFixedThreadPool(cores)
   for (_ <- 1 to cores) {
-    pool.submit(new Consumer(queue))
+    pool.submit(new Consumer(jobQueue))
   }
 
-  class Consumer(q: LinkedBlockingQueue[AlignmentJob]) extends Runnable {
+  /** Consumer that can execute alignment jobs. */
+  private class Consumer(q: LinkedBlockingQueue[AlignmentJob]) extends Runnable {
     private val timeout = Duration.apply(2, "second")
 
     def run(): Unit = {
       try {
         while (true) {
-          // BLOCKING calls OK in here
           val job = q
             .take()
+            // job has been dequeued
             .copy(startedAt = Some(Instant.now().toDateTime))
 
+          Await.result(jobsDAO.update(job), timeout)
           val targetIds: Iterator[String] = Random
-            .shuffle( // randomly shuffle targets
+          // randomly shuffle targets
+            .shuffle(
               Await.result(
                 targetDAO.all.map(_.map(_.id)),
                 timeout
@@ -58,10 +63,7 @@ class AlignmentServiceImpl @Inject() (
 
           // iterate until we either find a matching target OR run out of targets to test
           var targetMatch: Option[AlignmentResult] = None
-          while (
-            //  targetMatch.isEmpty &&  TODO uncomment this
-            targetIds.hasNext
-          ) {
+          while (targetMatch.isEmpty && targetIds.hasNext) {
             val id = targetIds.next()
             val t = Await.result(targetDAO.lookup(id).map(_.get), timeout)
             targetMatch = BioJava.pairwiseAlignment(job.query, t.sequence, id)
@@ -69,7 +71,7 @@ class AlignmentServiceImpl @Inject() (
 
           val updatedJob = targetMatch match {
             case Some(result) =>
-              // match has been found
+              // a match has been found
               job.copy(
                 completedAt = Some(Instant.now().toDateTime),
                 targetMatch = Some(result.targetMatchId),
@@ -93,6 +95,7 @@ class AlignmentServiceImpl @Inject() (
     }
   }
 
+  /** Create a new alignment job and drops it into the job queue. */
   override def createJob(
     username: String,
     query: String
@@ -107,7 +110,7 @@ class AlignmentServiceImpl @Inject() (
     jobsDAO
       .create(job)
       .map { _ =>
-        queue.put(job)
+        jobQueue.put(job)
 
         job
       }
@@ -120,4 +123,6 @@ class AlignmentServiceImpl @Inject() (
   override def jobsForUser(username: String): Future[Seq[AlignmentJob]] = {
     jobsDAO.all.map(jobs => jobs.filter(_.username == username).sortBy(_.createdAt).reverse)
   }
+
+  override def jobForId(id: UUID): Future[Option[AlignmentJob]] = jobsDAO.lookup(id)
 }

@@ -9,33 +9,66 @@ import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
 
+object UserController {
+  val SESSION_USERNAME_KEY = "username"
+
+  case class RegisterUserForm(
+    username: String,
+    password: String,
+    confirmPassword: String
+  )
+}
+
 class UserController @Inject() (
   userService: UserService,
   cc: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
   extends MessagesAbstractController(cc) {
+  import UserController._
 
-  val loginForm: Form[User] = Form(
+  private val home = routes.HomeController.index()
+  private val login = routes.UserController.loginPage()
+  private val register = routes.UserController.registerPage()
+
+  private val pwdMatchConstraint: Constraint[RegisterUserForm] = Constraint("matching")({ registerForm =>
+    if (registerForm.password == registerForm.confirmPassword) {
+      Valid
+    } else {
+      Invalid(Seq(ValidationError("Passwords must match")))
+    }
+  })
+
+  private val registerForm: Form[RegisterUserForm] = Form(
+    mapping(
+      "username" -> nonEmptyText,
+      "password" -> nonEmptyText,
+      "confirmPassword" -> nonEmptyText
+    )(RegisterUserForm.apply)(RegisterUserForm.unapply).verifying(pwdMatchConstraint)
+  )
+
+  private val loginForm: Form[User] = Form(
     mapping(
       "username" -> nonEmptyText,
       "password" -> nonEmptyText
     )(User.apply)(User.unapply)
   )
 
-  private val home = routes.HomeController.index()
-  private val login = routes.UserController.loginPage()
-  private val register = routes.UserController.registerPage()
-
-  def loginPage = Action { implicit request =>
-    request.session.get("username") match {
+  def loginPage: Action[AnyContent] = Action { implicit request =>
+    request.session.get(SESSION_USERNAME_KEY) match {
       case Some(_) =>
+        // if already logged in send to jobs page
         Redirect(home)
       case None =>
+        // otherwise show login form
         Ok(views.html.userLogin(loginForm, routes.UserController.processLoginAttempt()))
     }
   }
 
-  def processLoginAttempt = Action.async { implicit request =>
+  def logout = Action { implicit request =>
+    Redirect(routes.UserController.loginPage()).withNewSession
+  }
+
+  def processLoginAttempt: Action[AnyContent] = Action.async { implicit request =>
     val formValidationResult: Form[User] = loginForm.bindFromRequest
     formValidationResult.fold(
       { formWithErrors: Form[User] =>
@@ -44,45 +77,34 @@ class UserController @Inject() (
         )
       },
       { user: User =>
-        val futureFoundUser = userService.checkUserExists(user.username, user.password)
+        // crude user authentication
+        val futureFoundUser = userService.validateUser(user.username, user.password)
         futureFoundUser.map { foundUser =>
           if (foundUser) {
-            Redirect(home)
-              .withSession("username" -> user.username)
+            // if login is successful, redirect to jobs page and add the username to the session cookie
+            Redirect(home).withSession(SESSION_USERNAME_KEY -> user.username)
           } else {
+            // otherwise send back to login page
             Redirect(login)
+              .flashing("Error" -> "Invalid credentials")
           }
         }
       }
     )
   }
 
-  val pwdMatchConstraint: Constraint[RegisterUserForm] = Constraint("matching")({ registerForm =>
-    if (registerForm.password == registerForm.confirmPassword) {
-      Valid
-    } else {
-      Invalid(Seq(ValidationError("Passwords must match")))
-    }
-  })
-
-  val registerForm: Form[RegisterUserForm] = Form(
-    mapping(
-      "username" -> nonEmptyText,
-      "password" -> nonEmptyText,
-      "confirmPassword" -> nonEmptyText
-    )(RegisterUserForm.apply)(RegisterUserForm.unapply).verifying(pwdMatchConstraint)
-  )
-
-  def registerPage = Action { implicit request =>
-    request.session.get("username") match {
+  def registerPage: Action[AnyContent] = Action { implicit request =>
+    request.session.get(SESSION_USERNAME_KEY) match {
       case Some(_) =>
+        // if already logged in send to jobs page
         Redirect(home)
       case None =>
+        // otherwise show create user form
         Ok(views.html.userRegister(registerForm, routes.UserController.processCreateUser()))
     }
   }
 
-  def processCreateUser = Action.async { implicit request =>
+  def processCreateUser: Action[AnyContent] = Action.async { implicit request =>
     val formValidationResult: Form[RegisterUserForm] = registerForm.bindFromRequest
     formValidationResult.fold(
       { formWithErrors: Form[RegisterUserForm] =>
@@ -96,14 +118,16 @@ class UserController @Inject() (
         )
       },
       { user: RegisterUserForm =>
-        val futureFoundUser = userService.checkUserExists(user.username, user.password)
+        val futureFoundUser = userService.checkUserExists(user.username)
         futureFoundUser.flatMap { foundUser =>
           if (foundUser) {
+            // if username is already taken redirect to register user page
             Future.successful(Redirect(register))
           } else {
+            // otherwise create the new user
             userService.createUser(User(user.username, user.password)).map { _ =>
               Redirect(home)
-                .withSession("username" -> user.username)
+                .withSession(SESSION_USERNAME_KEY -> user.username)
             }
           }
         }
@@ -111,9 +135,3 @@ class UserController @Inject() (
     )
   }
 }
-
-case class RegisterUserForm(
-  username: String,
-  password: String,
-  confirmPassword: String
-)

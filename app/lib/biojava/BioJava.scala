@@ -1,4 +1,4 @@
-package lib.src.main.scala
+package lib.biojava
 
 import org.biojava.nbio.alignment.Alignments.PairwiseSequenceAlignerType
 import org.biojava.nbio.alignment.{Alignments, SimpleGapPenalty}
@@ -11,20 +11,33 @@ import scala.util.Try
 
 object BioJava {
 
+  /**
+    *
+    * @param targetMatchId
+    * @param result
+    */
   case class AlignmentResult(
     targetMatchId: String,
-    targetMatchStartIdx: Int,
-    targetMatchEndIdx: Int,
     result: String
   )
 
+  /**
+    *
+    * @param query
+    * @param target
+    * @param targetId
+    * @param gapPenalty
+    * @param extensionPenalty
+    * @param outputFormat
+    * @return
+    */
   def pairwiseAlignment(
     query: String,
     target: String,
     targetId: String,
-    gapPenalty: Int = 5,
-    extensionPenalty: Int = 2,
-    ouputFormat: Profile.StringFormat = CLUSTALW
+    gapPenalty: Int = 10,
+    extensionPenalty: Int = 1,
+    outputFormat: Profile.StringFormat = CLUSTALW
   ): Option[AlignmentResult] = {
     Try {
       val t = new DNASequence(target, AmbiguityDNACompoundSet.getDNACompoundSet)
@@ -33,27 +46,27 @@ object BioJava {
       val gap = new SimpleGapPenalty()
       gap.setOpenPenalty(gapPenalty)
       gap.setExtensionPenalty(extensionPenalty)
-      val psa = Alignments.getPairwiseAlignment(q, t, PairwiseSequenceAlignerType.GLOBAL, gap, matrix)
-
-      val queryLength = query.length
-      val result = if (psa.getNumIdenticals == queryLength) {
+      val psa: SequencePair[DNASequence, NucleotideCompound] =
+        Alignments.getPairwiseAlignment(q, t, PairwiseSequenceAlignerType.GLOBAL, gap, matrix)
+      // only return a match if every compound in the query matches a compound in the target
+      val result = if (psa.getNumIdenticals == query.length) {
+        val resultString = s"Query length: ${q.getLength}\n" +
+          s"Target length: ${t.getLength}\n" +
+          s"Match length: ${psa.getLength}\n" +
+          s"Identicals/Query length: ${psa.getNumIdenticals}/${q.getLength}\n" +
+          s"%Identity: ${psa.getPercentageOfIdentity(true) * 100}\n" +
+          s"${psa.toString(outputFormat)}"
         Some(
           AlignmentResult(
             targetId,
-            psa.getIndexInTargetForQueryAt(1), // 1-based indexing
-            psa.getIndexInTargetForQueryAt(queryLength),
-            psa.toString(ouputFormat)
+            resultString
           )
         )
       } else {
         None
       }
 
-      psa.getQuery.clearCache() // TODO
-      psa.getTarget.clearCache()
-
       result
     }.toOption.flatten
-
   }
 }

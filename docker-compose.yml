@@ -14,23 +14,23 @@ services:
       - "5432:5432"
     environment: *common-variables
     restart: always
-#  alignment-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    depends_on:
-#      - postgres
-#    ports:
-#      - "8080:9000"
-#    environment: *common-variables
-#    restart: always
+  alignment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "80:9000"
+    environment: *common-variables
+    restart: always
   pgadmin:
     image: "dpage/pgadmin4"
     container_name: "pgadmin"
     depends_on:
       - postgres
     ports:
-      - "9001:80"
+      - "9090:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: "user@domain.com"
-      PGADMIN_DEFAULT_PASSWORD: "postgres"
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD

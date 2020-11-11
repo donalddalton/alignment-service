@@ -11,7 +11,7 @@ class UserServiceImpl @Inject() (userDAO: UserDAO)(implicit ec: ExecutionContext
 
   override def createUser(user: User): Future[String] = userDAO.create(user)
 
-  override def checkUserExists(username: String, password: String): Future[Boolean] = {
+  override def validateUser(username: String, password: String): Future[Boolean] = {
     userDAO.lookup(username).map { maybeUser =>
       maybeUser.exists(user => user.username == username && user.password == password)
     }

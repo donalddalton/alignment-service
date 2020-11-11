@@ -1,0 +1,35 @@
+@(
+    job: entities.AlignmentJob
+)(implicit request: MessagesRequestHeader)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+
+
+    <body id="user-jobs">
+        <div class="container">
+@*        <div id="content">*@
+            <td><b>ID:</b> @job.id</td><br>
+            <td><b>Username:</b> @job.username</td><br>
+            <td><b>Created:</b> @job.createdAt</td><br>
+            <td><b>Started:</b> @job.startedAt</td><br>
+            <td><b>Completed:</b> @job.completedAt</td><br>
+            <td><b>Match:</b> @job.targetMatch</td><br>
+            <td><b>Query:</b> @job.query</td><br>
+            <td><b>Result:</b></td>
+            <td>
+            <div style="white-space: pre-wrap;">
+            <p style="font-family:'Lucida Console', monospace">@job.result</p>
+            </div>
+            </td>
+@*        </div>*@
+    </div>
+    </body>
+</html>

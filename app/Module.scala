@@ -32,7 +32,7 @@ class DatabaseProvider @Inject() (config: Config) extends Provider[Database] {
   lazy val get = Database.forConfig("database", config)
 }
 
-/** Closes database connections. */
+// DB cleanup hooks
 class UserDAOCloseHook @Inject() (dao: UserDAO, lifecycle: ApplicationLifecycle) {
   lifecycle.addStopHook { () =>
     Future.successful(dao.close())
