@@ -4,7 +4,7 @@ import java.util.UUID
 import org.joda.time.DateTime
 
 /**
-  * Alignment job description
+  * Alignment job record
   *
   * @param id Unique identifier
   * @param username the user that created the job.

@@ -11,32 +11,36 @@ import scala.util.Try
 
 object BioJava {
 
-  /**
-    *
-    * @param targetMatchId
-    * @param result
-    */
+  /** Alignment result */
   case class AlignmentResult(
     targetMatchId: String,
     result: String
   )
+}
+
+/** BioJava wrapper */
+class BioJava {
+  import BioJava._
 
   /**
+    * See https://biojava.org/wiki/BioJava%3ACookBook4.0/ for more info.
     *
-    * @param query
-    * @param target
-    * @param targetId
-    * @param gapPenalty
-    * @param extensionPenalty
-    * @param outputFormat
+    * Defaults: https://biojava.org/wiki/BioJava:CookBook3:PSA_DNA
+    *
+    * @param query            Query string e.g. `ATGC`
+    * @param target           Target string e.g `ATCGATG`
+    * @param targetId         Target ID e.g. `NC_000852`
+    * @param gapPenalty       Gap penalty
+    * @param extensionPenalty Extension penalty
+    * @param outputFormat     Result format
     * @return
     */
   def pairwiseAlignment(
     query: String,
     target: String,
     targetId: String,
-    gapPenalty: Int = 10,
-    extensionPenalty: Int = 1,
+    gapPenalty: Int = 5,
+    extensionPenalty: Int = 2,
     outputFormat: Profile.StringFormat = CLUSTALW
   ): Option[AlignmentResult] = {
     Try {

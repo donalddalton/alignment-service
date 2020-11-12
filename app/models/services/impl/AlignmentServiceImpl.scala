@@ -32,15 +32,15 @@ class AlignmentServiceImpl @Inject() (
   private val jobQueue = new LinkedBlockingQueue[AlignmentJob](10000)
 
   // Create ((# CPU cores) / 2) alignment workers for blocking computations
-  private val cores = Runtime.getRuntime.availableProcessors() / 2
-  private val pool = Executors.newFixedThreadPool(cores)
-  for (_ <- 1 to cores) {
+  private val pool = Executors.newFixedThreadPool(2)
+  pool.submit(new Consumer(jobQueue))
+  for (_ <- 1 to 2) {
     pool.submit(new Consumer(jobQueue))
   }
 
   /** Consumer that can execute alignment jobs. */
   private class Consumer(q: LinkedBlockingQueue[AlignmentJob]) extends Runnable {
-    private val timeout = Duration.apply(2, "second")
+    private val timeout = Duration.apply(5, "second")
 
     def run(): Unit = {
       try {
@@ -50,6 +50,7 @@ class AlignmentServiceImpl @Inject() (
             // job has been dequeued
             .copy(startedAt = Some(Instant.now().toDateTime))
 
+          // update the start time
           Await.result(jobsDAO.update(job), timeout)
           val targetIds: Iterator[String] = Random
           // randomly shuffle targets
@@ -66,9 +67,10 @@ class AlignmentServiceImpl @Inject() (
           while (targetMatch.isEmpty && targetIds.hasNext) {
             val id = targetIds.next()
             val t = Await.result(targetDAO.lookup(id).map(_.get), timeout)
-            targetMatch = BioJava.pairwiseAlignment(job.query, t.sequence, id)
+            targetMatch = new BioJava().pairwiseAlignment(job.query, t.sequence, id)
           }
 
+          // update job with result
           val updatedJob = targetMatch match {
             case Some(result) =>
               // a match has been found
@@ -95,7 +97,7 @@ class AlignmentServiceImpl @Inject() (
     }
   }
 
-  /** Create a new alignment job and drops it into the job queue. */
+  /** Create a new alignment job and enqueue it. */
   override def createJob(
     username: String,
     query: String
