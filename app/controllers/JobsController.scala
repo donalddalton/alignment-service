@@ -27,7 +27,7 @@ class JobsController @Inject() (
 
   val jobForm: Form[JobForm] = Form(
     mapping(
-      "query" -> nonEmptyText
+      "query" -> nonEmptyText(maxLength = 200)
     )(JobForm.apply)(JobForm.unapply)
   )
 

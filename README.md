@@ -1,11 +1,15 @@
 # Alignment-Service
 
+http://ec2-3-227-235-6.compute-1.amazonaws.com:8080
+
+Default user: `steve` password: `bar`
+
 ## Project Structure
 ```
 ├── app                 → Application source code
 │   ├── controllers     → Application controller source code
-│   ├── flyway          → Migrations
-│   ├── lib             → Application libraries
+│   ├── flyway          → Migrations
+│   ├── lib             → Application libraries
 │   ├── models          → Application business source code
 │   └── views           → Application UI templates
 ├── build.gradle        → Project build script
@@ -31,10 +35,39 @@ The application is built with gradle. Run `./gradlew tasks` to see a list of tas
 | 5432  | postgres
 | 9090  | pgadmin
 
+## Routes
+See the `conf/routes` for full set of endpoints. 
+
+```
+# Home page
+GET /                                 controllers.HomeController.index
+
+# Login page
+GET /login                            controllers.UserController.loginPage
+
+# User registration page
+GET /registerUser                     controllers.UserController.registerPage
+
+# Alignment jobs for user page
+GET /:username/jobs                   controllers.JobsController.jobsPage(username: String)
+
+# Create alignment job request
+POST /:username/createJob             controllers.JobsController.processCreateJob(username: String)
+
+# Job result
+GET /jobs/:id                         controllers.JobsController.jobResultPage(id: java.util.UUID)
+
+# Profiling route
+GET /jobs/profile/:n                  controllers.JobsController.profile(n: Int)
+```
+
 ## Architecture
 
-
 ## Profiling
+Use the `/jobs/profile/{n}` route to submit jobs with randomly generated `ATCG` strings of length `n` 
+(e.g. `curl localhost:9000/jobs/profile/100`).
+
+Performance metrics on single m5.2xlarge (8vCPU, 32GIB RAM)
 ```
 $ httperf --server localhost \
    --port 9000 \
