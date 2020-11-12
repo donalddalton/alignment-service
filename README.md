@@ -36,7 +36,7 @@ The application is built with gradle. Run `./gradlew tasks` to see a list of tas
 | 9090  | pgadmin
 
 ## Routes
-See the `conf/routes` for full set of endpoints. 
+See `conf/routes` for full set of endpoints. 
 
 ```
 # Home page
@@ -62,6 +62,8 @@ GET /jobs/profile/:n                  controllers.JobsController.profile(n: Int)
 ```
 
 ## Architecture
+![Alt text](public/images/architecture.jpg?raw=true "Architecture")
+
 
 ## Profiling
 Use the `/jobs/profile/{n}` route to submit jobs with randomly generated `ATCG` strings of length `n` 
