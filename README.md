@@ -1,9 +1,5 @@
 # Alignment-Service
 
-http://ec2-3-227-235-6.compute-1.amazonaws.com:8080
-
-Default user: `steve` password: `bar`
-
 ## Project Structure
 ```
 ├── app                 → Application source code
